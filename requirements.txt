@@ -5,3 +5,4 @@ gunicorn==21.2.0
 landingai
 pdf2image==1.17.0
 poppler-utils==0.1.0
+flask-cors  

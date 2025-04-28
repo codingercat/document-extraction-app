@@ -10,6 +10,7 @@ from landingai.postprocess import crop
 import logging
 from pdf2image import convert_from_path
 import gunicorn  # For production deployment
+from flask_cors import CORS
 
 # Set up logging
 logging.basicConfig(
@@ -23,7 +24,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-# Use environment variable for secret key in production
+CORS(app, resources={r"/*": {"origins": "*"}}) 
+
+
 secret_key = os.environ.get('SECRET_KEY')
 if not secret_key:
     logger.warning("No SECRET_KEY set in environment! Using a random key.")
@@ -75,15 +78,20 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
+    logger.info(f"Upload request received. Files in request: {list(request.files.keys())}")
+    
     if 'file' not in request.files:
+        logger.error("No 'file' field in request.files")
         flash('No file part')
-        return redirect(request.url)
+        return redirect(url_for('index'))
     
     files = request.files.getlist('file')
+    logger.info(f"Number of files received: {len(files)}")
     
     if not files or files[0].filename == '':
+        logger.error("Empty files list or no filename")
         flash('No selected file')
-        return redirect(request.url)
+        return redirect(url_for('index'))
     
     # Create a unique session ID for this batch
     session_id = str(uuid.uuid4())
