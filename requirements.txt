@@ -2,6 +2,6 @@ Flask==2.3.3
 Pillow==10.0.0
 Werkzeug==2.3.7
 gunicorn==21.2.0
-landingai==0.2.0
+landingai
 pdf2image==1.17.0
 poppler-utils==0.1.0
