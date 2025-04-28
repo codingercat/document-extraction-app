@@ -3,7 +3,7 @@ import os
 import uuid
 import zipfile
 from PIL import Image
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify
 from werkzeug.utils import secure_filename
 from landingai.predict import Predictor
 from landingai.postprocess import crop
@@ -82,16 +82,14 @@ def upload_file():
     
     if 'file' not in request.files:
         logger.error("No 'file' field in request.files")
-        flash('No file part')
-        return redirect(url_for('index'))
+        return jsonify(error="No file part"), 400  # ← changed from redirect to JSON
     
     files = request.files.getlist('file')
     logger.info(f"Number of files received: {len(files)}")
     
     if not files or files[0].filename == '':
         logger.error("Empty files list or no filename")
-        flash('No selected file')
-        return redirect(url_for('index'))
+        return jsonify(error="No selected file"), 400  # ← changed from redirect to JSON
     
     # Create a unique session ID for this batch
     session_id = str(uuid.uuid4())
