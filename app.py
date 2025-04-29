@@ -11,7 +11,9 @@ import logging
 from pdf2image import convert_from_path
 import gunicorn  # For production deployment
 from flask_cors import CORS
+from dotenv import load_dotenv
 
+load_dotenv()
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
@@ -79,7 +81,12 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     logger.info(f"Upload request received. Files in request: {list(request.files.keys())}")
-    
+    # ==== DEBUG SCRIPT ====
+    logger.info(f"Request Content-Type: {request.content_type}")
+    logger.info(f"Request Form Fields: {request.form.to_dict()}")
+    logger.info(f"Request Files Fields: { {k: v.filename for k, v in request.files.items()} }")
+    # ==== END DEBUG ====
+
     if 'file' not in request.files:
         logger.error("No 'file' field in request.files")
         return jsonify(error="No file part"), 400  # ← changed from redirect to JSON
