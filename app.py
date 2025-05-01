@@ -91,7 +91,7 @@ def upload_file():
         logger.error("No 'file' field in request.files")
         return jsonify(error="No file part"), 400  # ← changed from redirect to JSON
     
-    files = request.files.getlist('file')
+    files = request.files.getlist('file[]') 
     logger.info(f"Number of files received: {len(files)}")
     
     if not files or files[0].filename == '':
