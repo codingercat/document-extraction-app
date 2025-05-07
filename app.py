@@ -142,20 +142,24 @@ def upload_file():
     return redirect(url_for('download_file', filename=os.path.basename(zip_path), session_id=session_id))
 
 def pdf_to_images(pdf_path, output_dir):
-    """Convert PDF to images for processing"""
+    """Convert PDF to images (page by page) for processing"""
     try:
         logger.info(f"Converting PDF to images: {pdf_path}")
         base_filename = os.path.splitext(os.path.basename(pdf_path))[0]
-        
-        # Convert PDF to images
-        images = convert_from_path(pdf_path)
-        
-        for i, image in enumerate(images):
-            image_path = os.path.join(output_dir, f"{base_filename}_page_{i+1}.png")
-            image.save(image_path, "PNG")
-            logger.info(f"Saved PDF page as image: {image_path}")
-        
-        # Remove the original PDF file
+
+        # Get the number of pages
+        from pdf2image import pdfinfo_from_path
+        info = pdfinfo_from_path(pdf_path)
+        total_pages = info.get("Pages", 0)
+        logger.info(f"{pdf_path} has {total_pages} pages")
+
+        for page_num in range(1, total_pages + 1):
+            images = convert_from_path(pdf_path, dpi=150, first_page=page_num, last_page=page_num)
+            image_path = os.path.join(output_dir, f"{base_filename}_page_{page_num}.png")
+            images[0].save(image_path, "PNG")
+            logger.info(f"Saved page {page_num} as image: {image_path}")
+
+        # Remove the original PDF file after processing
         os.remove(pdf_path)
     except Exception as e:
         logger.error(f"Error converting PDF to images: {str(e)}")
