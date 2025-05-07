@@ -179,8 +179,8 @@ def process_images(input_dir, output_dir):
                 image = Image.open(file_path)
                 predictions = predictor.predict(image)
 
-                # Filter predictions for "Figure" labels only (case-insensitive)
-                figure_preds = [pred for pred in predictions if pred.get("label_name", "").lower() == "figure"]
+                # Filter predictions where label_name == "Figure"
+                figure_preds = [pred for pred in predictions if getattr(pred, "label_name", "").lower() == "figure"]
 
                 if not figure_preds:
                     logger.info(f"No 'Figure' label found in {filename}. Skipping.")
@@ -197,7 +197,6 @@ def process_images(input_dir, output_dir):
 
             except Exception as e:
                 logger.error(f"Error processing image {filename}: {str(e)}")
-                # Save the original image in case of error
                 try:
                     image_name = os.path.splitext(filename)[0]
                     output_filename = f"{image_name}_error.png"
