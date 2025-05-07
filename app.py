@@ -169,34 +169,32 @@ def process_images(input_dir, output_dir):
     """Process all images in the input directory using the LandingAI model"""
     if predictor is None:
         raise Exception("Image processing service is not available")
-        
+
     for filename in os.listdir(input_dir):
         if filename.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".bmp")):
             file_path = os.path.join(input_dir, filename)
-            
             logger.info(f"Processing: {file_path}")
-            
+
             try:
-                # Open and process the image
                 image = Image.open(file_path)
                 predictions = predictor.predict(image)
-                output_images = crop(predictions, image)
-                
-                # Save processed images
+
+                # Filter predictions for "Figure" labels only (case-insensitive)
+                figure_preds = [pred for pred in predictions if pred.get("label_name", "").lower() == "figure"]
+
+                if not figure_preds:
+                    logger.info(f"No 'Figure' label found in {filename}. Skipping.")
+                    continue
+
+                output_images = crop(figure_preds, image)
+
                 image_name = os.path.splitext(filename)[0]
                 for i, img in enumerate(output_images):
-                    output_filename = f"{image_name}_crop_{i+1}.png"
+                    output_filename = f"{image_name}_figure_{i+1}.png"
                     output_path = os.path.join(output_dir, output_filename)
                     img.save(output_path)
                     logger.info(f"Saved: {output_path}")
-                
-                # If no crops were made, save the original image
-                if len(output_images) == 0:
-                    logger.warning(f"No objects detected in {filename}, saving original")
-                    output_filename = f"{image_name}_original.png"
-                    output_path = os.path.join(output_dir, output_filename)
-                    image.save(output_path)
-                    logger.info(f"Saved original: {output_path}")
+
             except Exception as e:
                 logger.error(f"Error processing image {filename}: {str(e)}")
                 # Save the original image in case of error
@@ -207,8 +205,8 @@ def process_images(input_dir, output_dir):
                     image = Image.open(file_path)
                     image.save(output_path)
                     logger.info(f"Saved original due to error: {output_path}")
-                except:
-                    logger.error(f"Could not save original image for {filename}")
+                except Exception as inner_e:
+                    logger.error(f"Could not save original image for {filename}: {str(inner_e)}")
 
 def create_zip(folder_path, session_id):
     """Create a ZIP file from the folder"""
